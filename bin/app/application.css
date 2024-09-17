@@ -1,0 +1,27 @@
+.root{
+	-fx-font-family: Arial, Helvetica, sans-serif;
+    -fx-font-size: 24;
+}
+
+.outlined {
+	-fx-border-color: rgb(255, 0, 255);
+	-fx-border-width: 1px;
+}
+
+.top_controls {
+	-fx-padding: 10px;
+	-fx-spacing: 10px;
+}
+
+.text-field {
+	-fx-font-weight: normal;
+}
+
+.prefilled {
+	-fx-font-weight: bold;
+	-fx-font-size: 20;
+}
+
+.notes {
+	-fx-font-size: 12;
+}
