@@ -1,29 +1,26 @@
 package shared.model;
 
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
-import java.util.Set;
-import java.util.function.Predicate;
 
 import shared.utility.RuntimeAssert;
 
-public class SudokuSelection implements Set<Integer> {
-	private Set<Integer> indices;
+public class SudokuSelection implements Iterable<Integer> {
+	private boolean[] isIncluded = new boolean[81];
+	private int includeCount = 0;
 
 	/**Construct an empty selection.*/
-	public SudokuSelection() {
-		indices = new HashSet<>();
-	}
+	public SudokuSelection() {}
 
 	/**Construct a selection with only one index.
 	 *
 	 * @param _index	The index that will be the only member of the selection.
 	 */
 	public SudokuSelection(int _index) {
-		indices = new HashSet<>();
-		indices.add(_index);
+		this.add(_index);
 	}
 
 	/**Construct a selection from a Collection of indices.
@@ -31,8 +28,10 @@ public class SudokuSelection implements Set<Integer> {
 	 * @param _indices	The collection of indices to include. Duplicates will be ignored.
 	 * @throws NullPointerException	thrown if given collection is null.
 	 */
-	public SudokuSelection(Collection<Integer> _indices) throws NullPointerException {
-		indices = new HashSet<>(_indices);
+	public SudokuSelection(Iterable<Integer> _indices) throws NullPointerException {
+		for (Integer index : _indices) {
+			this.add(index);
+		}
 	}
 
 	/**Construct a selection containing all cells.
@@ -40,13 +39,11 @@ public class SudokuSelection implements Set<Integer> {
 	 * @return	The selection containing all cells.
 	 */
 	public static SudokuSelection all() {
-		Set<Integer> _indices = new HashSet<>(81);
+		SudokuSelection result = new SudokuSelection();
+		Arrays.fill(result.isIncluded, true);
+		result.includeCount = 81;
 
-		for (int i = 0; i < 81; i++) {
-			_indices.add(i);
-		}
-
-		return new SudokuSelection(_indices);
+		return result;
 	}
 
 	/**Construct a selection for the given row.
@@ -57,17 +54,16 @@ public class SudokuSelection implements Set<Integer> {
 	public static SudokuSelection row(int row) {
 		RuntimeAssert.inRange(row, 0, 9);
 
-		Set<Integer> _indices = new HashSet<>(9);
-
+		SudokuSelection result = new SudokuSelection();
+		
+		int baseInd = row * 9;
 		for (int col = 0; col < 9; col++) {
-			int index = row * 9 + col;
-			_indices.add(index);
+			int index = baseInd + col;
+			result.add(index);
 		}
 
-		return new SudokuSelection(_indices);
+		return result;
 	}
-
-	//TODO: make row, column, and square iterables that go through all selections of each category.
 
 	/**Construct a selection for the given column.
 	 *
@@ -77,14 +73,15 @@ public class SudokuSelection implements Set<Integer> {
 	public static SudokuSelection column(int col) {
 		RuntimeAssert.inRange(col, 0, 9);
 
-		Set<Integer> _indices = new HashSet<>(9);
-
-		for (int row = 0; row < 9; row++) {
-			int index = row * 9 + col;
-			_indices.add(index);
+		SudokuSelection result = new SudokuSelection();
+		
+		int index = col;
+		while (index < 81) {
+			result.add(index);
+			index += 9;
 		}
 
-		return new SudokuSelection(_indices);
+		return result;
 	}
 
 	/**Construct a selection for the given square index.
@@ -96,7 +93,7 @@ public class SudokuSelection implements Set<Integer> {
 		final int[] OFFSETS = {0, 1, 2, 9, 10, 11, 18, 19, 20};
 		RuntimeAssert.inRange(sqr, 0, 9);
 
-		Set<Integer> _indices = new HashSet<>(9);
+		SudokuSelection result = new SudokuSelection();
 
 		int squareX = sqr % 3;
 		int squareY = sqr / 3;
@@ -105,31 +102,13 @@ public class SudokuSelection implements Set<Integer> {
 
 		for (int offsetIndex = 0; offsetIndex < 9; offsetIndex++) {
 			int index = baseIndex + OFFSETS[offsetIndex];
-			_indices.add(index);
+			result.add(index);
 		}
 
-		return new SudokuSelection(_indices);
+		return result;
 	}
 
-	/**Construct a selection from a given function of index.
-	 * Indices where the given function returns true are included in the selection.
-	 *
-	 * @param function	Indices for which this function return true, are included in the selection.
-	 * @return	A selection constructed from a function.
-	 */
-	public static SudokuSelection fromIndexFunction(Predicate<Integer> function) {
-		Set<Integer> _indices = new HashSet<>();
-
-		for (int i = 0; i < 81; i++) {
-			if (function.test(i)) {
-				_indices.add(i);
-			}
-		}
-
-		return new SudokuSelection(_indices);
-	}
-
-	/**Get the selection containing all cells affected by the cell at the given index.
+	/**Get the selection containing all cells affected by the cell at the given index. Does not contain the index itself.
 	 *
 	 * @param index	Given index.
 	 * @return	Selection equivalent to the union between the given index's row, column, and square selections.
@@ -138,8 +117,8 @@ public class SudokuSelection implements Set<Integer> {
 		int row = Sudoku.indexToRow(index);
 		int col = Sudoku.indexToColumn(index);
 		int sqr = Sudoku.indexToSquare(index);
-
-		return row(row).getUnionWith(column(col)).getUnionWith(square(sqr));
+		
+		return row(row).getUnionWith(column(col)).getUnionWith(square(sqr)).getDifferenceWith(new SudokuSelection(index));
 	}
 
 	/**Retrieve a 81 element array representing the selection as a mask, where true values are part of the selection.
@@ -147,20 +126,14 @@ public class SudokuSelection implements Set<Integer> {
 	 * @return	The mask array (boolean[81])
 	 */
 	public boolean[] getAsMask() {
-		boolean[] mask = new boolean[81];
-
-		for (int i = 0; i < 81; i++) {
-			mask[i] = this.contains(i);
-		}
-
-		return mask;
+		return Arrays.copyOf(isIncluded, 81);
 	}
 	
 	public int getRandom(Random randomizer) {
-		int chosenIndex = randomizer.nextInt(indices.size());
+		int chosenIndex = randomizer.nextInt(size());
 
 		int counter = 0;
-		for (Integer index : indices) {
+		for (Integer index : this) {
 			if (counter == chosenIndex) {
 				return index;
 			}
@@ -177,10 +150,10 @@ public class SudokuSelection implements Set<Integer> {
 	 * @return	The union of the selections (all indices from both are included)
 	 */
 	public SudokuSelection getUnionWith(SudokuSelection other) {
-		Set<Integer> joinedSet = new HashSet<>(this.indices);
-		joinedSet.addAll(other.indices);
+		SudokuSelection joinedSet = new SudokuSelection(this);
+		joinedSet.addAll(other);
 
-		return new SudokuSelection(joinedSet);
+		return joinedSet;
 	}
 
 	/**Get the intersection of this selection and another selection without modifying either selection.
@@ -189,11 +162,11 @@ public class SudokuSelection implements Set<Integer> {
 	 * @return	The intersection of the selections (only indices present in both are included)
 	 */
 	public SudokuSelection getIntersectionWith(SudokuSelection other) {
-		Set<Integer> slicedSet = new HashSet<>(this.indices);
-		slicedSet.retainAll(other.indices);
+		SudokuSelection slicedSet = new SudokuSelection(this);
+		slicedSet.retainAll(other);
 		//slicedSet.removeIf(index -> (!other.indices.contains(index)));//Remove all elements NOT present in other
 
-		return new SudokuSelection(slicedSet);
+		return slicedSet;
 	}
 
 	/**Get the difference between this selection and another selection without modifying either selection.
@@ -202,11 +175,11 @@ public class SudokuSelection implements Set<Integer> {
 	 * @return	The difference of the selections (only indices present in this, but not in other are included)
 	 */
 	public SudokuSelection getDifferenceWith(SudokuSelection other) {
-		Set<Integer> diffedSet = new HashSet<>(this.indices);
+		SudokuSelection diffedSet = new SudokuSelection(this);
 		//diffedSet.removeIf(index -> (other.indices.contains(index)));//Remove all elements present in other
-		diffedSet.removeAll(other.indices);
+		diffedSet.removeAll(other);
 
-		return new SudokuSelection(diffedSet);
+		return diffedSet;
 	}
 
 	/**Get the inverse of the current selection. Current selection is NOT modified.
@@ -220,69 +193,153 @@ public class SudokuSelection implements Set<Integer> {
 	//--Collection methods----------------------------------------------------------
 	@Override
 	public Iterator<Integer> iterator() {
-		return indices.iterator();
+		return new Iter(this);
+	}
+	
+	public class Iter implements Iterator<Integer> {
+		SudokuSelection target;
+		int nextIncluded;
+		
+		public Iter(SudokuSelection _target) {
+			target = _target;
+			nextIncluded = getNextIncluded(0);
+		}
+		
+		@Override
+		public boolean hasNext() {
+			return nextIncluded >= 0;
+		}
+
+		@Override
+		public Integer next() {
+			int result = nextIncluded;
+			
+			nextIncluded = getNextIncluded(nextIncluded + 1);
+			return result;
+		}
+		
+		private int getNextIncluded(int startingFrom) {
+			for (int i = startingFrom; i < 81; i++) {
+				if (target.isIncluded[i]) {
+					return i;
+				}
+			}
+			
+			return -1;
+		}
 	}
 
-	@Override
 	public int size() {
-		return indices.size();
+		return includeCount;
 	}
 
-	@Override
 	public boolean isEmpty() {
-		return indices.isEmpty();
+		return (size() == 0);
 	}
 
-	@Override
-	public boolean contains(Object o) {
-		return indices.contains(o);
+	public boolean contains(int index) {
+		RuntimeAssert.inRange(index, 0, 81);
+		return isIncluded[index];
 	}
 
-	@Override
-	public Object[] toArray() {
-		return indices.toArray();
+	public boolean add(int index) {
+		RuntimeAssert.inRange(index, 0, 81);
+		
+		if (!isIncluded[index]) {
+			isIncluded[index] = true;
+			includeCount++;
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 
-	@Override
-	public <T> T[] toArray(T[] a) {
-		return indices.toArray(a);
+	public boolean remove(int index) {
+		RuntimeAssert.inRange(index, 0, 81);
+		
+		if (isIncluded[index]) {
+			isIncluded[index] = false;
+			includeCount--;
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 
-	@Override
-	public boolean add(Integer index) {
-		return indices.add(index);
-	}
-
-	@Override
-	public boolean remove(Object o) {
-		return indices.remove(o);
-	}
-
-	@Override
-	public boolean containsAll(Collection<?> c) {
-		return indices.containsAll(c);
+	public boolean containsAll(Iterable<Integer> c) {
+		for (Integer obj : c) {
+			if (!contains(obj)) {
+				return false;
+			}
+		}
+		
+		return true;
 	}
 
 	/**Works as a union operation, where the current selection is modified.*/
-	@Override
-	public boolean addAll(Collection<? extends Integer> c) {
-		return indices.addAll(c);
+	public boolean addAll(Iterable<Integer> c) {
+		boolean modified = false; 
+		
+		for (Integer index : c) {
+			//Skip bad values
+			if ((index == null) || (index < 0) || (index >= 81)) {
+				continue;
+			}
+			
+			modified |= add(index);
+		}
+		
+		return modified;
 	}
 
 	/**Works as a difference operation, where the current selection is modified.*/
-	@Override
-	public boolean removeAll(Collection<?> c) {
-		return indices.removeAll(c);
+	public boolean removeAll(Iterable<Integer> c) {
+		boolean modified = false;
+		
+		for (Integer index : toAcceptableIndices(c)) {
+			modified |= remove(index);
+		}
+		
+		return modified;
 	}
 
 	/**Works as an intersection operation, where the current selection is modified.*/
-	@Override
-	public boolean retainAll(Collection<?> c) {
-		return indices.retainAll(c);
+	public boolean retainAll(Iterable<Integer> c) {
+		boolean modified = false;
+		
+		List<Integer> retained = toAcceptableIndices(c);
+		for (int i = 0; i < 81; i++) {
+			if (!retained.contains(i)) {
+				modified |= remove(i);
+			}
+		}
+		
+		return modified;
 	}
 
-	@Override
 	public void clear() {
-		indices.clear();
+		Arrays.fill(isIncluded, false);
+		includeCount = 0;
+	}
+	
+	/**Filter out all null values, and values that can't be converted to an integer in range 0 (inclusive) to 81 (exclusive)
+	 * 
+	 * @param collection	Source collection.
+	 * @return				Filtered list of indices that aren't null, and are in range 0 (inclusive) to 81 (exclusive)
+	 */
+	private List<Integer> toAcceptableIndices(Iterable<Integer> collection) {
+		List<Integer> acceptable = new ArrayList<Integer>();
+		
+		for (Integer candidate : collection) {
+			if ((candidate == null) || (candidate < 0) || (candidate >= 81)) {
+				continue;
+			}
+			
+			acceptable.add(candidate);
+		}
+		
+		return acceptable;
 	}
 }

@@ -9,7 +9,6 @@ import shared.io.SDMConverter;
 import shared.model.DebugFormatter;
 import shared.model.Sudoku;
 import shared.model.SudokuSelection;
-import shared.utility.Memo;
 import shared.utility.RuntimeAssert;
 
 public class SudokuSolver {
@@ -60,7 +59,7 @@ public class SudokuSolver {
 		return grade;
 	}
 
-	public boolean isUnique(Sudoku sudoku) {
+	public boolean hasUniqueSolution(Sudoku sudoku) {
 		return solve(sudoku).isSolved();
 	}
 
@@ -80,7 +79,6 @@ public class SudokuSolver {
 		}
 	}
 
-	Memo<Sudoku, SudokuEvalData> solveMemo = null;
 	/**Apply all set strategies to solve a sudoku. The given sudoku is not modified.
 	 *
 	 * @param sudoku
@@ -150,8 +148,7 @@ public class SudokuSolver {
 
 			throw e;
 		}
-
-		solveMemo = new Memo<>(sudoku, evalData);
+		
 		return evalData;
 	}
 

@@ -27,7 +27,6 @@ public class SudokuViewCell extends StackPane {
 	private int representedIndex;
 	private List<SudokuView> listeners;
 	
-	//TODO: make it easier to change formatter at runtime
 	public SudokuViewCell(int index, ASudokuFormatter formatter) {
 		RuntimeAssert.inRange(index, 0, 81);
 		RuntimeAssert.notNull(formatter);
@@ -46,6 +45,12 @@ public class SudokuViewCell extends StackPane {
 		RuntimeAssert.notNull(newListener);
 		
 		listeners.add(newListener);
+	}
+	
+	public void setFormatter(ASudokuFormatter formatter) {
+		RuntimeAssert.notNull(formatter);
+		
+		cell.setTextFormatter(new TextFormatter<>(formatter.getConverter(), 0, formatter.getFilter()));
 	}
 	
 	public void removeListener(SudokuView removedListener) {

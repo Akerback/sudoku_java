@@ -54,6 +54,9 @@ public class SudokuView extends GridPane {
 
 	public void setFormatter(ASudokuFormatter _formatter) {
 		formatter = _formatter;
+		for (SudokuViewCell cell : cells) {
+			cell.setFormatter(formatter);
+		}
 	}
 
 	/**Equivalent to display(Sudoku sudoku, boolean clearNotes = false)
@@ -198,54 +201,62 @@ public class SudokuView extends GridPane {
 
 		//--Arrow key navigation
 		if (event.getCode().isArrowKey()) {
-			int step = 1;
-			if (event.isControlDown()) {
-				step = 3;
-			}
-
-			int selectedX = selectedIndex % 9;
-			int selectedY = selectedIndex / 9;
-
-			//Select direction
-			switch (event.getCode()) {
-				case UP:
-					selectedY -= step;
-					break;
-				case DOWN:
-					selectedY += step;
-					break;
-				case LEFT:
-					selectedX -= step;
-					break;
-				case RIGHT:
-					selectedX += step;
-					break;
-				default:
-					break;
-			}
-
-			selectedX = selectedX % 9;
-			selectedY = selectedY % 9;
-
-			//If the value itself went negative, the modulo also went negative
-			if (selectedX < 0) {
-				selectedX += 9;
-			}
-			if (selectedY < 0) {
-				selectedY += 9;
-			}
-
-			//Normal 2d -> 1d array math
-			getField(selectedY * 9 + selectedX).requestFocus();
-			event.consume();
-			//No need to update selectedIndex, because the cell itself will set it when it gains focus
+			arrowNavigation(event);
 		}
 		//--Delete/backspace should always clear a cell if it's editable
 		else if ((event.getCode() == KeyCode.DELETE) || (event.getCode() == KeyCode.BACK_SPACE)) {
-			if (getField(selectedIndex).isEditable()) {
-				getField(selectedIndex).setText("");
-				event.consume();
-			}
+			clearCell(event);
+		}
+	}
+	
+	private void arrowNavigation(KeyEvent event) {
+		int step = 1;
+		if (event.isControlDown()) {
+			step = 3;
+		}
+
+		int selectedX = selectedIndex % 9;
+		int selectedY = selectedIndex / 9;
+
+		//Select direction
+		switch (event.getCode()) {
+			case UP:
+				selectedY -= step;
+				break;
+			case DOWN:
+				selectedY += step;
+				break;
+			case LEFT:
+				selectedX -= step;
+				break;
+			case RIGHT:
+				selectedX += step;
+				break;
+			default:
+				break;
+		}
+
+		selectedX = selectedX % 9;
+		selectedY = selectedY % 9;
+
+		//If the value itself went negative, the modulo also went negative
+		if (selectedX < 0) {
+			selectedX += 9;
+		}
+		if (selectedY < 0) {
+			selectedY += 9;
+		}
+
+		//Normal 2d -> 1d array math
+		getField(selectedY * 9 + selectedX).requestFocus();
+		event.consume();
+		//No need to update selectedIndex, because the cell itself will set it when it gains focus
+	}
+	
+	private void clearCell(KeyEvent event) {
+		if (getField(selectedIndex).isEditable()) {
+			getField(selectedIndex).setText("");
+			event.consume();
 		}
 	}
 }

@@ -41,13 +41,13 @@ public abstract class ASudokuHoleMaker {
 				modifier.apply(newHoles);
 			}
 
-			remainingOptions = remainingOptions.getDifferenceWith(newHoles);
+			remainingOptions.removeAll(newHoles);
 
 			if (remainingOptions.size() < 40) {
 				Sudoku evalSudoku = sudoku.clone();
 				evalSudoku.fill(remainingOptions.getInverse(), 0);
 
-				if (!solver.isUnique(evalSudoku)) {
+				if (!solver.hasUniqueSolution(evalSudoku)) {
 					remainingOptions = remainingOptions.getUnionWith(newHoles);
 					break;
 				}
