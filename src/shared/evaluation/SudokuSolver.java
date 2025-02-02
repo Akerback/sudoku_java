@@ -31,7 +31,7 @@ public class SudokuSolver {
 	}
 
 	public Difficulty grade(Sudoku sudoku) {
-		int solved = 81 - sudoku.indicesOf(0, SudokuSelection.all()).size();
+		int solved = 81 - sudoku.valueFilter(0, SudokuSelection.all()).size();
 
 		SudokuEvalData solveResult = solve(sudoku);
 		List<AStrategyResult> stepLog = solveResult.getLog();

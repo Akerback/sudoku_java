@@ -54,7 +54,7 @@ public class SudokuEvalData {
 		Arrays.fill(appearanceCounts, 0);
 
 		for (int i = 0; i < 9; i++) {
-			appearanceCounts[i] = sudoku.indicesOf(i + 1, area).size();
+			appearanceCounts[i] = sudoku.valueFilter(i + 1, area).size();
 		}
 
 		return appearanceCounts;

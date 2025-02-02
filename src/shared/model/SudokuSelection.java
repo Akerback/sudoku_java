@@ -33,6 +33,25 @@ public class SudokuSelection implements Iterable<Integer> {
 			this.add(index);
 		}
 	}
+	
+	public SudokuSelection(SudokuSelection _existing) throws NullPointerException {
+		isIncluded = Arrays.copyOf(_existing.isIncluded, 81);
+		includeCount = _existing.includeCount;
+	}
+	
+	/**Construct a selection from a mask where true values are part of the selection, and false are not. 
+	 * If the mask does not contain exactly 81 items, it is truncated or padded with false values to a length of 81.
+	 * 
+	 * @param mask
+	 * @return
+	 */
+	public static SudokuSelection fromMask(boolean[] mask) {
+		SudokuSelection selection = new SudokuSelection();
+		selection.isIncluded = Arrays.copyOf(mask, 81);
+		selection.includeCount = selection.getSizeRecount();
+		
+		return selection;
+	}
 
 	/**Construct a selection containing all cells.
 	 *
@@ -322,6 +341,21 @@ public class SudokuSelection implements Iterable<Integer> {
 	public void clear() {
 		Arrays.fill(isIncluded, false);
 		includeCount = 0;
+	}
+	
+	/**Recount the number of indices included in the selection. Does not change this selection.
+	 * 
+	 * @return
+	 */
+	public int getSizeRecount() {
+		int recount = 0;
+		for (boolean included : isIncluded) {
+			if (included) {
+				recount++;
+			}
+		}
+		
+		return recount;
 	}
 	
 	/**Filter out all null values, and values that can't be converted to an integer in range 0 (inclusive) to 81 (exclusive)

@@ -1,8 +1,5 @@
 package view;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 
@@ -16,23 +13,23 @@ import javafx.scene.layout.StackPane;
 
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
-
+import javafx.util.StringConverter;
 import shared.model.ASudokuFormatter;
 import shared.utility.Constraints;
 import shared.utility.RuntimeAssert;
 
-public class SudokuViewCell extends StackPane {
+public class SudokuDisplayCell extends StackPane {
 	private Text[] notes;
 	private TextField cell;
+	private SudokuDisplay view;
 	private int representedIndex;
-	private List<SudokuView> listeners;
 	
-	public SudokuViewCell(int index, ASudokuFormatter formatter) {
+	public SudokuDisplayCell(int index, ASudokuFormatter formatter) {
 		RuntimeAssert.inRange(index, 0, 81);
 		RuntimeAssert.notNull(formatter);
 		
 		representedIndex = index;
-		listeners = new ArrayList<SudokuView>();
+		view = null;
 		
 		cell = constructCell(formatter);
 		this.getChildren().add(cell);
@@ -41,10 +38,8 @@ public class SudokuViewCell extends StackPane {
 	
 	public TextField getCellText() { return cell; }
 	
-	public void addListener(SudokuView newListener) {
-		RuntimeAssert.notNull(newListener);
-		
-		listeners.add(newListener);
+	public void setView(SudokuDisplay newListener) {
+		view = newListener;
 	}
 	
 	public void setFormatter(ASudokuFormatter formatter) {
@@ -53,9 +48,32 @@ public class SudokuViewCell extends StackPane {
 		cell.setTextFormatter(new TextFormatter<>(formatter.getConverter(), 0, formatter.getFilter()));
 	}
 	
-	public void removeListener(SudokuView removedListener) {
-		//In this case, null is fine
-		listeners.remove(removedListener);
+	/**Add a style class unless it already exists.
+	 * 
+	 * @param styleClass
+	 * @return	true if added, false otherwise.
+	 */
+	public boolean addStyle(String styleClass) {
+		if (!cell.getStyleClass().contains(styleClass)) {
+			//System.out.printf("Added style %s to cell at index %d\n", styleClass, representedIndex);
+			cell.getStyleClass().add(styleClass);
+			return true;
+		}
+		return false;
+	}
+	
+	/**Remove a style class unless it doesn't exists.
+	 * 
+	 * @param styleClass
+	 * @return	true if removed, false otherwise.
+	 */
+	public boolean removeStyle(String styleClass) {
+		if (cell.getStyleClass().contains(styleClass)) {
+			//System.out.printf("Removed style %s from cell at index %d\n", styleClass, representedIndex);
+			cell.getStyleClass().remove(styleClass);
+			return true;
+		}
+		return false;
 	}
 	
 	public void clearNotes() {
@@ -64,18 +82,18 @@ public class SudokuViewCell extends StackPane {
 		}
 	}
 	
-	public void toggleNote(int candidate) {
-		RuntimeAssert.inRange(candidate, 1, 10);
-		
-		Text note = notes[candidate - 1];
-		note.setVisible(!note.isVisible());
-	}
-	
-	public void setNoteVisibility(int candidate, boolean visible) {
+	public void setNoteVisible(int candidate, boolean visible) {
 		RuntimeAssert.inRange(candidate, 1, 10);
 		
 		Text note = notes[candidate - 1];
 		note.setVisible(visible);
+	}
+	
+	public boolean isNoteVisible(int candidate) {
+		RuntimeAssert.inRange(candidate, 1, 10);
+		
+		Text note = notes[candidate - 1];
+		return note.isVisible();
 	}
 	
 	private TextField constructCell(ASudokuFormatter formatter) {
@@ -86,23 +104,18 @@ public class SudokuViewCell extends StackPane {
 		
 		//Change bindings
 		field.setTextFormatter(new TextFormatter<>(formatter.getConverter(), 0, formatter.getFilter()));
-		field.textProperty().addListener(new ChangeListener<String>() {
-			@Override
-			public void changed(ObservableValue<? extends String> arg0, String oldVal, String newVal) {
-				notifyCellChange(newVal);
-			}
+		field.textProperty().addListener((observable, oldVal, newVal) -> {
+			StringConverter<Integer> converter = formatter.getConverter();
+			notifyCellChange(converter.fromString(oldVal), converter.fromString(newVal));
 		});
 
 		//Focus bindings
-		field.focusedProperty().addListener(new ChangeListener<Boolean>() {
-			@Override
-			public void changed(ObservableValue<? extends Boolean> arg0, Boolean wasSelected, Boolean isSelected) {
-				if (isSelected) {
-					notifySelected();
-				}
-				else {
-					notifyDeselected();
-				}
+		field.focusedProperty().addListener((observable, wasSelected, isSelected) -> {
+			if (isSelected) {
+				notifySelected(wasSelected);
+			}
+			else {
+				notifyDeselected(wasSelected);
 			}
 		});
 		
@@ -145,21 +158,15 @@ public class SudokuViewCell extends StackPane {
 		return pane;
 	}
 	
-	private void notifyCellChange(String newValue) {
-		for (SudokuView view : listeners) {
-			view.onCellChange(representedIndex, newValue);
-		}
+	private void notifyCellChange(int oldValue, int newValue) {
+		view.onCellChange(representedIndex, oldValue, newValue);
 	}
 	
-	private void notifySelected() {
-		for (SudokuView view : listeners) {
-			view.onCellSelected(representedIndex);
-		}
+	private void notifySelected(boolean wasSelected) {
+		view.onCellSelected(representedIndex, wasSelected);
 	}
 	
-	private void notifyDeselected() {
-		for (SudokuView view : listeners) {
-			view.onCellDeselected(representedIndex);
-		}
+	private void notifyDeselected(boolean wasSelected) {
+		view.onCellDeselected(representedIndex, wasSelected);
 	}
 }

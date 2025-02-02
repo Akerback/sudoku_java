@@ -9,13 +9,10 @@ import java.util.Set;
 import shared.model.Sudoku;
 import shared.model.SudokuSelection;
 
-public class WaveCollapseGenerator implements ISudokuGenerator {
-	private final Random rng;
+public class WaveCollapseGenerator implements IFilledSudokuGenerator {
 	private QuantumNode[] nodes = new QuantumNode[81];
 
 	public WaveCollapseGenerator() {
-		rng = new Random(System.currentTimeMillis());
-
 		//Create the nodes
 		for (int i = 0; i < 81; i++) {
 			nodes[i] = new QuantumNode();
@@ -30,7 +27,7 @@ public class WaveCollapseGenerator implements ISudokuGenerator {
 	}
 
 	@Override
-	public void generate(Sudoku target) {
+	public void generate(Sudoku target, Random randomizer) {
 		boolean success = false;
 		int limit = 50;
 		int attempt = 0;
@@ -45,14 +42,14 @@ public class WaveCollapseGenerator implements ISudokuGenerator {
 				}
 
 				//Generate
-				QuantumNode curNode = pickNext();
+				QuantumNode curNode = pickNext(randomizer);
 				while (curNode != null) {
 					//Collapse to a random legal value
 					List<Integer> options = curNode.getAvailableOptions();
-					int chosen = options.get(rng.nextInt(options.size()));
+					int chosen = options.get(randomizer.nextInt(options.size()));
 
 					curNode.collapse(chosen);
-					curNode = pickNext();
+					curNode = pickNext(randomizer);
 				}
 
 				//Verify it's a legal board
@@ -92,7 +89,7 @@ public class WaveCollapseGenerator implements ISudokuGenerator {
 	 *
 	 * @return	The next node to collapse.
 	 */
-	private QuantumNode pickNext() {
+	private QuantumNode pickNext(Random randomizer) {
 		List<Integer> bestCandidates = new ArrayList<>();
 		int leastOptions = 10;//9 options, should never find anything bigger
 
@@ -121,7 +118,7 @@ public class WaveCollapseGenerator implements ISudokuGenerator {
 		}
 		else {
 			//Pick a random candidate
-			int indexIndex = rng.nextInt(bestCandidates.size());
+			int indexIndex = randomizer.nextInt(bestCandidates.size());
 			return nodes[bestCandidates.get(indexIndex)];
 		}
 	}

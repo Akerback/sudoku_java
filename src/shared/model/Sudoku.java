@@ -73,7 +73,13 @@ public class Sudoku implements Cloneable {
 		refreshCellIssues(index);
 	}
 
-	public SudokuSelection indicesOf(int value, SudokuSelection selection) {
+	/**Filter indices in a selection to only those filled with a specific value inside the Sudoku.
+	 * 
+	 * @param value
+	 * @param selection
+	 * @return	A new selection containing only indices from the given selection that have the desired value inside this Sudoku.
+	 */
+	public SudokuSelection valueFilter(int value, SudokuSelection selection) {
 		SudokuSelection newSelection = new SudokuSelection();
 
 		for (Integer index : selection) {
@@ -130,8 +136,12 @@ public class Sudoku implements Cloneable {
 		}
 	}
 
-	public boolean[] getIssueMask() {
-		return issues.getAsMask();
+	/**Get a selection containing all cells that conflict with the rules of Sudoku.
+	 * 
+	 * @return
+	 */
+	public SudokuSelection getIssues() {
+		return new SudokuSelection(issues);
 	}
 
 	public boolean isLegalBoardState() {
@@ -139,7 +149,7 @@ public class Sudoku implements Cloneable {
 	}
 
 	public boolean hasEmptyCells() {
-		return indicesOf(0, SudokuSelection.all()).size() > 0;
+		return valueFilter(0, SudokuSelection.all()).size() > 0;
 	}
 
 	public boolean isSolved() {
@@ -182,7 +192,7 @@ public class Sudoku implements Cloneable {
 	private void selectHouseIssues(SudokuSelection house, SudokuSelection selectionTarget) {
 		for (int i = 0; i < 9; i++) {
 			int candidate = i + 1;
-			SudokuSelection appearances = indicesOf(candidate, house);
+			SudokuSelection appearances = valueFilter(candidate, house);
 			if (appearances.size() > 1) {
 				selectionTarget.addAll(appearances);
 			}

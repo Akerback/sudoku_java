@@ -24,6 +24,6 @@ public class SudokuEvalView {
 	}
 
 	public SudokuSelection indicesOf(int value, SudokuSelection selection) {
-		return source.getSudoku().indicesOf(value, selection);
+		return source.getSudoku().valueFilter(value, selection);
 	}
 }

@@ -1,11 +1,13 @@
 package shared.generation;
 
+import java.util.Random;
+
 import shared.model.SudokuSelection;
 
 public class PerSquareEvenHoleMaker extends ASudokuHoleMaker {
 	private int nextSquare = 0;
 	@Override
-	protected SudokuSelection getNextHole(SudokuSelection holeCandidates) {
+	protected SudokuSelection getNextHole(SudokuSelection holeCandidates, Random randomizer) {
 		holeCandidates = holeCandidates.getIntersectionWith(SudokuSelection.square(nextSquare));
 
 		nextSquare += 1;
@@ -13,6 +15,6 @@ public class PerSquareEvenHoleMaker extends ASudokuHoleMaker {
 			nextSquare = 0;
 		}
 
-		return new SudokuSelection(holeCandidates.getRandom(getRandomizer()));
+		return new SudokuSelection(holeCandidates.getRandom(randomizer));
 	}
 }

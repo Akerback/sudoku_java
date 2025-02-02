@@ -4,39 +4,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import shared.evaluation.Difficulty;
 import shared.evaluation.SudokuSolver;
 import shared.model.Sudoku;
 import shared.model.SudokuSelection;
 import shared.utility.RuntimeAssert;
 
 public abstract class ASudokuHoleMaker {
-	private Random randomizer;
 	private SudokuSolver solver = null;
 	private List<ISudokuModifier> modifiers = new ArrayList<>();
-
-	/**Get the randomizer. If it hasn't been initialized this also initializes it.
-	 *
-	 * @return	Random number generator.
-	 */
-	protected Random getRandomizer() {
-		if (randomizer == null) {
-			randomizer = new Random(System.currentTimeMillis());
-		}
-
-		return randomizer;
-	}
 
 	public final void setGrader(SudokuSolver _solver) {
 		solver = _solver;
 	}
 
-	public final void makeHoles(Sudoku sudoku) {
+	public final void makeHoles(Sudoku sudoku, Difficulty targetDifficulty, Random randomizer) {
 		RuntimeAssert.notNull(solver);
 
 		SudokuSelection remainingOptions = SudokuSelection.all();
 
 		while (true) {
-			SudokuSelection newHoles = getNextHole(remainingOptions);
+			SudokuSelection newHoles = getNextHole(remainingOptions, randomizer);
 			for (ISudokuModifier modifier : modifiers) {
 				modifier.apply(newHoles);
 			}
@@ -74,5 +62,5 @@ public abstract class ASudokuHoleMaker {
 	 *
 	 * @return 	SudokuSelection, where all values in the selection will become holes.
 	 */
-	protected abstract SudokuSelection getNextHole(SudokuSelection holeOptions);
+	protected abstract SudokuSelection getNextHole(SudokuSelection holeOptions, Random randomizer);
 }
