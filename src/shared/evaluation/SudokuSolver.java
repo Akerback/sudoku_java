@@ -29,18 +29,33 @@ public class SudokuSolver {
 		//Sort by difficulty
 		strategies.sort((first, second) -> first.getDifficulty().compareTo(second.getDifficulty()));
 	}
-
+	
 	public Difficulty grade(Sudoku sudoku) {
+		return grade(sudoku, true);
+	}
+
+	/**Calculate a difficulty for a given sudoku by solving it.
+	 * 
+	 * @param sudoku
+	 * @param silent	If true, debug output is hidden.
+	 * @return	The difficulty of the hardest technique used while solving, or Difficulty.UNGRADED if there is no unique solution.
+	 */
+	public Difficulty grade(Sudoku sudoku, boolean silent) {
 		int solved = 81 - sudoku.valueFilter(0, SudokuSelection.all()).size();
 
-		SudokuEvalData solveResult = solve(sudoku);
-		List<AStrategyResult> stepLog = solveResult.getLog();
+		AnnotatedSudoku solveResult = solve(sudoku, silent);
+		if (!solveResult.isSolved()) {
+			if (!silent) {
+				System.out.println("Grading solve failed! Sudoku may not have a unique Solution!");
+			}
+			return Difficulty.UNGRADED;
+		}
+		
+		List<StrategyResult> stepLog = solveResult.getLog();
 
 		Difficulty grade = Difficulty.UNGRADED;
-		for (AStrategyResult step : stepLog) {
-			String stepString = step.toString();
-			//TODO: better way of checking solve status
-			if (stepString == "Solution") {
+		for (StrategyResult step : stepLog) {
+			if (step.getType() == StrategyResult.Type.SOLUTION) {
 				solved++;
 			}
 			
@@ -50,17 +65,16 @@ public class SudokuSolver {
 				grade = step.source.getDifficulty();
 			}
 
-			System.out.println("[" + solved + "/81]" + step.getSource() + ": " + step + " value " + step.value + " at index #" + step.index);
-		}
-		if (!solveResult.isSolved()) {
-			System.out.println("Grading solve failed! Sudoku may not have a unique Solution!");
+			if (!silent) {
+				System.out.println("[" + solved + "/81]" + step.getSource() + ": " + step + " value " + step.value + " at index #" + step.index);
+			}
 		}
 
 		return grade;
 	}
 
 	public boolean hasUniqueSolution(Sudoku sudoku) {
-		return solve(sudoku).isSolved();
+		return solve(sudoku, false).isSolved();
 	}
 
 	/**Get the singular solution for a sudoku without modifying it. Returns null if no unique solution could be found.
@@ -69,7 +83,7 @@ public class SudokuSolver {
 	 * @return	The singular solution for the given sudoku, or null if no unique solution could be found.
 	 */
 	public Sudoku getSolution(Sudoku sudoku) {
-		SudokuEvalData solveResult = solve(sudoku);
+		AnnotatedSudoku solveResult = solve(sudoku, false);
 
 		if (!solveResult.isSolved()) {
 			return null;
@@ -84,7 +98,7 @@ public class SudokuSolver {
 	 * @param sudoku
 	 * @return	SudokuEvalData	Contains the
 	 */
-	private SudokuEvalData solve(Sudoku sudoku) {
+	private AnnotatedSudoku solve(Sudoku sudoku, boolean silent) {
 		RuntimeAssert.hasElements(strategies);
 		RuntimeAssert.notNull(sudoku);
 		/*
@@ -94,26 +108,25 @@ public class SudokuSolver {
 
 		Sudoku originalSudoku = sudoku.clone();
 
-		SudokuEvalData evalData = new SudokuEvalData(sudoku);
-		SudokuEvalView evalView = evalData.getView();
+		AnnotatedSudoku evalData = new AnnotatedSudoku(sudoku);
+		AnnotatedSudokuView evalView = evalData.getView();
 
 		try {
 			//As long as atleast one strategy progresses, keep looping
 			while (true) {
 				int totalChanges = 0;
 				for (ASudokuStrategy strat : strategies) {
-					//As long as this strategy progresses, keep trying it again
-					List<AStrategyResult> stratResults = strat.apply(evalView);
+					//If this strategy has no result, move on to harder strategies.
+					List<StrategyResult> stratResults = strat.apply(evalView);
 
 					int changes = evalData.applyResults(stratResults);
 					totalChanges += changes;
 
-					if (changes > 0) {
-						System.out.println("Solver made " + changes + " changes using strategy: " + strat.toString());
-					}
-
 					//If this strat had success, go back to easier strategies
 					if (changes > 0) {
+						if (!silent) {
+							System.out.println("Solver made " + changes + " changes using strategy: " + strat.toString());
+						}
 						break;
 					}
 				}
@@ -122,7 +135,9 @@ public class SudokuSolver {
 					break;
 				}
 			}
-			System.out.println("Solver has finished!");
+			if (!silent) {
+				System.out.println("Solver has finished!");
+			}
 		}
 		catch (AssertionError e) {
 			System.out.println();
@@ -138,8 +153,8 @@ public class SudokuSolver {
 			System.out.println();
 
 			int stepInd = 0;
-			List<AStrategyResult> log = evalData.getLog();
-			for (AStrategyResult result : log) {
+			List<StrategyResult> log = evalData.getLog();
+			for (StrategyResult result : log) {
 				System.out.println(stepInd + ":\t" + result.getSource() + " -> " + result.toString() + " (index=" + result.index + ", value=" + result.value + ")");
 				stepInd++;
 			}

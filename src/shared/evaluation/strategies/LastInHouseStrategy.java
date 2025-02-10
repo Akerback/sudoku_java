@@ -4,18 +4,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import shared.evaluation.AStrategyResult;
+import shared.evaluation.StrategyResult;
 import shared.evaluation.ASudokuStrategy;
 import shared.evaluation.Difficulty;
 import shared.evaluation.ResultReason;
-import shared.evaluation.SudokuEvalView;
+import shared.evaluation.AnnotatedSudokuView;
 import shared.model.SudokuSelection;
 
 public class LastInHouseStrategy extends ASudokuStrategy {
 
 	@Override
-	public List<AStrategyResult> apply(SudokuEvalView sudokuEvalView) {
-		List<AStrategyResult> results = new ArrayList<>();
+	public List<StrategyResult> apply(AnnotatedSudokuView sudokuEvalView) {
+		List<StrategyResult> results = new ArrayList<>();
 
 		for (int square = 0; square < 9; square++) {
 			SudokuSelection selection = SudokuSelection.square(square);
@@ -35,7 +35,7 @@ public class LastInHouseStrategy extends ASudokuStrategy {
 		return results;
 	}
 
-	private void processSelection(SudokuSelection selection, SudokuEvalView dataSource, List<AStrategyResult> target) {
+	private void processSelection(SudokuSelection selection, AnnotatedSudokuView dataSource, List<StrategyResult> target) {
 		int[] candidateAppearances = new int[9];
 		int[] candFirstAppearanceIndex = new int[9];
 

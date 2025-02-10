@@ -21,6 +21,7 @@ import shared.generation.holemodifiers.DiagonalSymmetryModifier;
 import shared.model.ASudokuFormatter;
 import shared.model.GameplayFormatter;
 
+//TODO: visual solver
 //TODO: split the app into several modes/scenes, each with their own views and controllers
 //TODO: theme selector so dark/light can be chosen at runtime
 public class SudokuAppLauncher extends Application {
@@ -43,9 +44,9 @@ public class SudokuAppLauncher extends Application {
 			new LastInCellStrategy()
 		};
 
-		holeMaker.setGrader(new SudokuSolver(strats));
+		SudokuSolver grader = new SudokuSolver(strats);
 		
-		SudokuGenerator generator = new SudokuGenerator(fillGenerator, holeMaker);
+		SudokuGenerator generator = new SudokuGenerator(fillGenerator, holeMaker, grader);
 
 		//Make the scene
 		Scene scene = new Scene(new MainView(generator, formatter));

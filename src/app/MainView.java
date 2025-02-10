@@ -10,6 +10,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.text.TextAlignment;
+import shared.evaluation.Difficulty;
 import shared.generation.SudokuGenerator;
 import shared.model.ASudokuFormatter;
 import view.SudokuDisplay;
@@ -54,6 +55,8 @@ public class MainView extends BorderPane {
 		timer.setTextAlignment(TextAlignment.RIGHT);
 
 		Region padding = new Region();
+		padding.setPrefWidth(0);
+		padding.setMinWidth(0);
 
 		topControls.getChildren().add(newGameButton);
 		topControls.getChildren().add(padding);//Padding to force timer to the the right edge
@@ -63,19 +66,23 @@ public class MainView extends BorderPane {
 		
 		return topControls;
 	}
-
-	/**Callback for when a new game was started*/
-	private void onNewGame(ActionEvent event) {
-		controller.startGame(generator, 0);
+	
+	public void forceNewGame() {
+		controller.startGame(generator.generate(Difficulty.ANY));
 		sudokuDisplay.display(controller.getCurrentSudoku(), true);
 		sudokuDisplay.focusOn(40);
 		
 		timer.start();
+	}
+
+	/**Callback for when a new game was started*/
+	private void onNewGame(ActionEvent event) {
+		forceNewGame();
 		
 		event.consume();
 	}
 
-	public void onGameWon() {
+	private void onGameWon() {
 		timer.stop();
 	}
 }

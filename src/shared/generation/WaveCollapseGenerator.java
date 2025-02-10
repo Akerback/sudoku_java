@@ -27,7 +27,7 @@ public class WaveCollapseGenerator implements IFilledSudokuGenerator {
 	}
 
 	@Override
-	public void generate(Sudoku target, Random randomizer) {
+	public Sudoku generate(Random randomizer) {
 		boolean success = false;
 		int limit = 50;
 		int attempt = 0;
@@ -71,8 +71,12 @@ public class WaveCollapseGenerator implements IFilledSudokuGenerator {
 				System.out.println();
 			}
 		}
-
-		assignFromNodes(target);
+		
+		//Assign from nodes
+		Sudoku result = new Sudoku();
+		assignFromNodes(result);
+		
+		return result;
 	}
 
 	/**Assign the current node state to a target sudoku.

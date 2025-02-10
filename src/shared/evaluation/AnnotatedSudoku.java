@@ -9,11 +9,14 @@ import shared.model.SudokuCandidates;
 import shared.model.SudokuSelection;
 import shared.utility.RuntimeAssert;
 
-public class SudokuEvalData {
+public class AnnotatedSudoku {
 	private Sudoku sudoku;
 	private SudokuCandidates candidates;
+	
+	//TODO: get the solvelog out of here
+	private List<StrategyResult> solveLog = new ArrayList<>();
 
-	public SudokuEvalData(Sudoku _sudoku) {
+	public AnnotatedSudoku(Sudoku _sudoku) {
 		RuntimeAssert.notNull(_sudoku);
 
 		sudoku = _sudoku.clone();
@@ -21,7 +24,7 @@ public class SudokuEvalData {
 		candidates = new SudokuCandidates();
 	}
 
-	public SudokuEvalView getView() { return new SudokuEvalView(this); }
+	public AnnotatedSudokuView getView() { return new AnnotatedSudokuView(this); }
 	public Sudoku getSudoku() { return sudoku; }
 
 	public int getValue(int index) {
@@ -81,6 +84,11 @@ public class SudokuEvalData {
 		return madeChange;
 	}
 
+	/**Unset a value at a location. The value currently at the location needs to be provided for a sanity check.
+	 * 
+	 * @param index		Index to unset.
+	 * @param fromValue	Value currently at the location that is to be unset. Must match with what is at the location or an AssertionError is raised.
+	 */
 	public void unsetValue(int index, int fromValue) {
 		RuntimeAssert.inRange(index, 0, 81);
 		RuntimeAssert.inRange(fromValue, 1, 10);
@@ -106,10 +114,9 @@ public class SudokuEvalData {
 		candidates.addCandidate(index, candidate);
 	}
 
-	private List<AStrategyResult> solveLog = new ArrayList<>();
-	public int applyResults(List<AStrategyResult> results) {
+	public int applyResults(List<StrategyResult> results) {
 		int changes = 0;
-		for (AStrategyResult result : results) {
+		for (StrategyResult result : results) {
 			try {
 				if (result.apply(this)) {
 					solveLog.add(result);
@@ -125,8 +132,12 @@ public class SudokuEvalData {
 		return changes;
 	}
 
-	public List<AStrategyResult> getLog() {
-		return new ArrayList<>(solveLog);
+	public List<StrategyResult> getLog() {
+		return solveLog;
+	}
+	
+	public int getFilledCount() {
+		return 81 - sudoku.valueFilter(0, SudokuSelection.all()).size();
 	}
 
 	public boolean isSolved() {

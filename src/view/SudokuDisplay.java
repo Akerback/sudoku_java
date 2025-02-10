@@ -19,7 +19,6 @@ import shared.model.Sudoku;
 
 import shared.utility.RuntimeAssert;
 
-//TODO: make this view independant from mode so it can be reused for the visual solver
 public class SudokuDisplay extends GridPane {
 	private List<ISudokuDisplayObserver> observers;
 	

@@ -3,11 +3,11 @@ package shared.evaluation.strategies;
 import java.util.ArrayList;
 import java.util.List;
 
-import shared.evaluation.AStrategyResult;
+import shared.evaluation.StrategyResult;
 import shared.evaluation.ASudokuStrategy;
 import shared.evaluation.Difficulty;
 import shared.evaluation.ResultReason;
-import shared.evaluation.SudokuEvalView;
+import shared.evaluation.AnnotatedSudokuView;
 import shared.model.SudokuSelection;
 
 public class LinearEliminationStrategy extends ASudokuStrategy {
@@ -15,8 +15,8 @@ public class LinearEliminationStrategy extends ASudokuStrategy {
 	public Difficulty getDifficulty() { return Difficulty.EASY; }
 
 	@Override
-	public List<AStrategyResult> apply(SudokuEvalView sudokuEvalView) {
-		List<AStrategyResult> results = new ArrayList<>();
+	public List<StrategyResult> apply(AnnotatedSudokuView sudokuEvalView) {
+		List<StrategyResult> results = new ArrayList<>();
 
 		for (int i = 0; i < 81; i++) {
 			if (sudokuEvalView.getValue(i) != 0) {

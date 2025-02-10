@@ -4,10 +4,10 @@ import java.util.List;
 
 import shared.model.SudokuSelection;
 
-public class SudokuEvalView {
-	private SudokuEvalData source;
+public class AnnotatedSudokuView {
+	private AnnotatedSudoku source;
 
-	public SudokuEvalView(SudokuEvalData _source) {
+	public AnnotatedSudokuView(AnnotatedSudoku _source) {
 		source = _source;
 	}
 

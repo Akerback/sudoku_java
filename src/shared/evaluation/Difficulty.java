@@ -7,5 +7,6 @@ public enum Difficulty {
 	HARD,
 	EXPERT,
 	MASTER,
-	EXTREME
+	EXTREME,
+	ANY,
 }

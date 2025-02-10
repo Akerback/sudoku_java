@@ -11,39 +11,14 @@ import shared.model.SudokuSelection;
 import shared.utility.RuntimeAssert;
 
 public abstract class ASudokuHoleMaker {
-	private SudokuSolver solver = null;
 	private List<ISudokuModifier> modifiers = new ArrayList<>();
 
-	public final void setGrader(SudokuSolver _solver) {
-		solver = _solver;
-	}
-
-	public final void makeHoles(Sudoku sudoku, Difficulty targetDifficulty, Random randomizer) {
-		RuntimeAssert.notNull(solver);
-
-		SudokuSelection remainingOptions = SudokuSelection.all();
-
-		while (true) {
-			SudokuSelection newHoles = getNextHole(remainingOptions, randomizer);
-			for (ISudokuModifier modifier : modifiers) {
-				modifier.apply(newHoles);
-			}
-
-			remainingOptions.removeAll(newHoles);
-
-			if (remainingOptions.size() < 40) {
-				Sudoku evalSudoku = sudoku.clone();
-				evalSudoku.fill(remainingOptions.getInverse(), 0);
-
-				if (!solver.hasUniqueSolution(evalSudoku)) {
-					remainingOptions = remainingOptions.getUnionWith(newHoles);
-					break;
-				}
-			}
-		}
-
-		sudoku.fill(remainingOptions.getInverse(), 0);
-		solver.grade(sudoku);
+	public final SudokuSelection getNextHoles(SudokuSelection remainingOptions, Random randomizer) {
+		SudokuSelection newHoles = new SudokuSelection(getNextHole(remainingOptions, randomizer));
+		
+		modifiers.forEach(mod -> mod.apply(newHoles));
+		
+		return newHoles;
 	}
 
 	public final void addModifier(ISudokuModifier modifier) {
@@ -62,5 +37,5 @@ public abstract class ASudokuHoleMaker {
 	 *
 	 * @return 	SudokuSelection, where all values in the selection will become holes.
 	 */
-	protected abstract SudokuSelection getNextHole(SudokuSelection holeOptions, Random randomizer);
+	protected abstract int getNextHole(SudokuSelection holeOptions, Random randomizer);
 }

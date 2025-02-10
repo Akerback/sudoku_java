@@ -5,5 +5,5 @@ import java.util.Random;
 import shared.model.Sudoku;
 
 public interface IFilledSudokuGenerator {
-	public abstract void generate(Sudoku target, Random randomizer);
+	public abstract Sudoku generate(Random randomizer);
 }

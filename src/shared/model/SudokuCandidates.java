@@ -24,15 +24,15 @@ public class SudokuCandidates {
 		}
 	}
 
-	public boolean canBe(int index, int candidate) {
-		return candidates[indexInCandidates(index, candidate)];
+	public boolean hasCandidate(int index, int candidate) {
+		return candidates[getInternalIndex(index, candidate)];
 	}
 
 	public SudokuSelection getNonEmpty() {
 		SudokuSelection selection = new SudokuSelection();
 
 		for (int i = 0; i < 81; i++) {
-			int trueIndex = indexInCandidates(i);
+			int trueIndex = internalIndex(i);
 			if (ArrayExtras.frequencyRange(candidates, trueIndex, trueIndex + 9, true) > 0) {
 				selection.add(i);
 			}
@@ -42,47 +42,20 @@ public class SudokuCandidates {
 	}
 
 	public boolean[] getMask(int index) {
-		int trueIndex = indexInCandidates(index);
+		int trueIndex = internalIndex(index);
 		return Arrays.copyOfRange(candidates, trueIndex, trueIndex + 9);
 	}
-
-	public boolean[] getSharedMask(int firstIndex, int secondIndex) {
-		boolean[] firstMask = getMask(firstIndex);
-		boolean[] secondMask = getMask(secondIndex);
-
-		boolean[] sharedMask = new boolean[9];
-		for (int i = 0; i < 9; i++) {
-			sharedMask[i] = firstMask[i] & secondMask[i];
-		}
-
-		return sharedMask;
-	}
-
-	public boolean[] getSharedMask(SudokuSelection selection) {
-		boolean[] sharedMask = new boolean[9];
-		Arrays.fill(sharedMask, true);
-
-		for (Integer index : selection) {
-			boolean[] mask = getMask(index);
-
-			for (int i = 0; i < 9; i++) {
-				sharedMask[i] &= mask[i];
-			}
-		}
-
-		return sharedMask;
-	}
-
-	public void reset(int index) {
-		fill(index, true);
-	}
-
-	public void resetAll() {
+	
+	public void addAllCandidates() {
 		Arrays.fill(candidates, true);
 	}
 
 	public void removeAllCandidates() {
 		Arrays.fill(candidates, false);
+	}
+
+	public void addAllCandidatesAt(int index) {
+		fill(index, true);
 	}
 
 	public void removeAllCandidatesAt(int index) {
@@ -98,28 +71,26 @@ public class SudokuCandidates {
 	}
 
 	private void fill(int index, boolean value) {
-		RuntimeAssert.inRange(index, 0, 81);
-
-		int trueIndex = indexInCandidates(index);
-		Arrays.fill(candidates, trueIndex, trueIndex + 9, value);
+		int internalIndex = internalIndex(index);
+		Arrays.fill(candidates, internalIndex, internalIndex + 9, value);
 	}
 
 	private boolean set(int index, int candidate, boolean value) {
-		int trueIndex = indexInCandidates(index, candidate);
-		boolean result = candidates[trueIndex] != value;
+		int internalIndex = getInternalIndex(index, candidate);
+		boolean result = candidates[internalIndex] != value;
 
-		candidates[trueIndex] = value;
+		candidates[internalIndex] = value;
 		return result;
 	}
 
-	private int indexInCandidates(int sudokuIndex, int candidate) {
+	private int getInternalIndex(int sudokuIndex, int candidate) {
 		RuntimeAssert.inRange(sudokuIndex, 0, 81);
 		RuntimeAssert.inRange(candidate, 1, 10);
 
 		return sudokuIndex * 9 + candidate - 1;
 	}
 
-	private int indexInCandidates(int sudokuIndex) {
-		return indexInCandidates(sudokuIndex, 1);
+	private int internalIndex(int sudokuIndex) {
+		return getInternalIndex(sudokuIndex, 1);
 	}
 }

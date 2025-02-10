@@ -4,17 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.util.Pair;
-import shared.evaluation.AStrategyResult;
+import shared.evaluation.StrategyResult;
 import shared.evaluation.ASudokuStrategy;
 import shared.evaluation.Difficulty;
 import shared.evaluation.ResultReason;
-import shared.evaluation.SudokuEvalView;
+import shared.evaluation.AnnotatedSudokuView;
 import shared.model.SudokuSelection;
 
 public class NakedPairsStrategy extends ASudokuStrategy {
+	//FIXME: fix the many errors this strategy throws
+	
 	@Override
-	public List<AStrategyResult> apply(SudokuEvalView sudokuEvalView) {
-		List<AStrategyResult> results = new ArrayList<>();
+	public List<StrategyResult> apply(AnnotatedSudokuView sudokuEvalView) {
+		List<StrategyResult> results = new ArrayList<>();
 
 		for (int squareInd = 0; squareInd < 9; squareInd++) {
 			SudokuSelection selection = SudokuSelection.square(squareInd);
@@ -43,7 +45,7 @@ public class NakedPairsStrategy extends ASudokuStrategy {
 		return results;
 	}
 
-	private void pairsToResults(List<Pair<Integer, Integer>> pairs, SudokuSelection selection, SudokuEvalView sudokuEvalView, List<AStrategyResult> results) {
+	private void pairsToResults(List<Pair<Integer, Integer>> pairs, SudokuSelection selection, AnnotatedSudokuView sudokuEvalView, List<StrategyResult> results) {
 		for (Pair<Integer, Integer> pair : pairs) {
 			List<Integer> eliminatedCands = sudokuEvalView.getCandidates(pair.getKey());
 
@@ -64,7 +66,7 @@ public class NakedPairsStrategy extends ASudokuStrategy {
 		}
 	}
 
-	private List<Pair<Integer, Integer>> findPairs(SudokuSelection selection, SudokuEvalView dataSource) {
+	private List<Pair<Integer, Integer>> findPairs(SudokuSelection selection, AnnotatedSudokuView dataSource) {
 		//Pick out all indices with only 2 candidates remaining
 		List<Integer> pairCandidates = new ArrayList<>();
 

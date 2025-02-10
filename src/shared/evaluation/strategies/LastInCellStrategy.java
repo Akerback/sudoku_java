@@ -3,16 +3,16 @@ package shared.evaluation.strategies;
 import java.util.ArrayList;
 import java.util.List;
 
-import shared.evaluation.AStrategyResult;
+import shared.evaluation.StrategyResult;
 import shared.evaluation.ASudokuStrategy;
 import shared.evaluation.Difficulty;
 import shared.evaluation.ResultReason;
-import shared.evaluation.SudokuEvalView;
+import shared.evaluation.AnnotatedSudokuView;
 
 public class LastInCellStrategy extends ASudokuStrategy {
 	@Override
-	public List<AStrategyResult> apply(SudokuEvalView sudokuEvalView) {
-		List<AStrategyResult> results = new ArrayList<>();
+	public List<StrategyResult> apply(AnnotatedSudokuView sudokuEvalView) {
+		List<StrategyResult> results = new ArrayList<>();
 
 		for (int i = 0; i < 81; i++) {
 			List<Integer> candidates = sudokuEvalView.getCandidates(i);

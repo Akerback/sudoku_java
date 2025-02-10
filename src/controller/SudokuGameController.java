@@ -2,11 +2,9 @@ package controller;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import shared.generation.SudokuGenerator;
 import shared.model.ISudokuDisplayObserver;
 import shared.model.Sudoku;
 import shared.model.SudokuSelection;
-import shared.utility.RuntimeAssert;
 import view.SudokuDisplay;
 
 public class SudokuGameController implements ISudokuDisplayObserver {
@@ -16,7 +14,7 @@ public class SudokuGameController implements ISudokuDisplayObserver {
 
 	public SudokuGameController(SudokuDisplay _display) {
 		display = _display;
-		currentSudoku = null;
+		currentSudoku = new Sudoku();
 		
 		display.addObserver(this);
 	}
@@ -25,11 +23,9 @@ public class SudokuGameController implements ISudokuDisplayObserver {
 		display = _display;
 	}
 
-	public void startGame(SudokuGenerator generator, float holeAmount) {
-		RuntimeAssert.notNull(generator);
-		
+	public void startGame(Sudoku _sudoku) {
 		hasWon.set(false);
-		currentSudoku = generator.generate();
+		currentSudoku = _sudoku;
 	}
 
 	public void setCell(int index, int value) {
@@ -82,6 +78,7 @@ public class SudokuGameController implements ISudokuDisplayObserver {
 		SudokuSelection nonEmpty = emptyCells.getInverse();
 		display.setCellsEditable(emptyCells, true);
 		display.setCellsEditable(nonEmpty, false);
+		display.clearHighlight(emptyCells, "prefilled");
 		display.highlight(nonEmpty, "prefilled");
 		
 		updateSameHighlight();
